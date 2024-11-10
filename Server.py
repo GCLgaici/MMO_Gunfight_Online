@@ -1,11 +1,13 @@
-import json
-import os
-import pathlib
-import random
-from Class.SOCKET_NET import Sn
-from _thread import *
-import pygame
 
+import os
+import json
+import time
+
+import pygame
+import random
+import pathlib
+from _thread import *
+from Class.SOCKET_NET import Sn
 
 def draw_text(surf, text, size, x, y, rgb=(255, 255, 255)):  # 绘制文本
     font = pygame.font.Font(font_name, size)
@@ -30,7 +32,7 @@ class server:
             Packets_data: str = self.Sn.get_data()
             if Packets_data is not None:
                 data_list = Packets_data.split("|")
-                if data_list[0] == "加入房间":
+                if data_list[0] == "加入房间":  #
                     bh = self.Room_number
                     for p in self.Sn.client_socket_list:    # 找客服端发送编号
                         if p[2][1] == int(data_list[2]):
@@ -50,11 +52,11 @@ class server:
                             self.Sn.send(p[1], temp_data)
                     self.Room_number += 1   # 新编号
 
-                elif data_list[0] == "玩家状态":
+                elif data_list[0] == "wjzt":    # 玩家状态
                     self.Sn.send_All(Packets_data)
                 elif data_list[0] == "发射子弹":
                     self.Sn.send_All(Packets_data)
-                print("", Packets_data)
+                # print(time.time(), Packets_data)
 
     def initiate(self):
         self.Sn.Bind_listeners()

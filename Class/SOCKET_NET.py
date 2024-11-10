@@ -4,7 +4,8 @@
 
 功能：
 
-
+2024-11-09
+    修复接收不完整导致数据头 数据沾包数据错误等问题
 """
 import socket
 import time
@@ -34,18 +35,25 @@ class Sn:   # 服务端
         while True:
             try:
                 data_length = num_conn.recv(self.header_length)
-                data_length.decode()
-                js_cd = int(data_length)
-                recv_msg = num_conn.recv(js_cd)
+                # print(data_length)
+                data_length.decode('utf-8')
+                sj_cd = int(data_length)
+
+                recv_size = 0
+                recv_data = b''
+                while recv_size < sj_cd:
+                    recv_msg = num_conn.recv(sj_cd-recv_size)
+                    recv_size += len(recv_msg)
+                    recv_data += recv_msg
             except ConnectionResetError as con_rest:  # 报错应该是客服端关闭了连接
                 print("客服端强制关闭", con_rest)
                 self.client_socket_list.remove(("client", num_conn, num_addr))
                 break
             else:
-                if recv_msg:
+                if recv_data:
                     try:
                         # 尝试对接收到的数据解码，如果解码成功，即使解码后的数据是ascii可显示字符也直接发送，
-                        msg: str = recv_msg.decode()
+                        msg: str = recv_data.decode('utf-8')
                         self.data_all.append(msg)
                         # print(f'收到数据{num_addr}去掉头信息： {msg}')
                     except Exception as ret:
@@ -107,17 +115,25 @@ class Cn:
         while True:
             try:
                 data_length = self.kfd_socket.recv(self.header_length)
-                data_length.decode()
-                js_cd = int(data_length)
-                recv_msg = self.kfd_socket.recv(js_cd)
+                # print(data_length)
+                data_length.decode('utf-8')
+                sj_cd = int(data_length)
+
+                recv_size = 0
+                recv_data = b''
+                while recv_size < sj_cd:
+                    recv_msg = self.kfd_socket.recv(sj_cd - recv_size)
+                    recv_size += len(recv_msg)
+                    recv_data += recv_msg
+
             except ConnectionResetError as con_rest:  # 报错应该是服务端关闭了连接ConnectionResetError
                 print("服务端强制关闭", con_rest)
                 break
             else:
-                if recv_msg:
+                if recv_data:
                     try:
                         # 尝试对接收到的数据解码，如果解码成功，即使解码后的数据是ascii可显示字符也直接发送，
-                        msg: str = recv_msg.decode()
+                        msg: str = recv_data.decode('utf-8')
                         self.data_all.append(msg)
                         # print(f'收到服务端数据去掉头信息： {msg}')
                     except Exception as ret:
@@ -125,6 +141,7 @@ class Cn:
                         ...
                     else:
                         ...
+
         self.kfd_socket.close()
     def Run_Receive_data(self):
         start_new_thread(self.threaded_, ())

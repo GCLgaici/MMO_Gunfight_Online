@@ -38,7 +38,7 @@ class Process_the_display:  # 主要图像绘制
         self.Game.Cn.Run_Receive_data()
     def threaded_dispose(self, Game, player):
         while True:
-            time.sleep(0.000000000000000000000002)
+            time.sleep(0.000000000000000000002)     #
             if self.Game.Connect_to_a_server:   # 连接服务器成功
                 # 网络数据处理
                 temp_data: str = self.Game.Cn.get_server_data()
@@ -46,7 +46,6 @@ class Process_the_display:  # 主要图像绘制
                     data_list = temp_data.split("|")
                     if data_list[0] == '玩家编号':
                         player.Room_player_number = data_list[1]
-                        # print(data_list)
                     elif data_list[0] == '房间新人':
                         np = Net_Player(Game)
                         np.Room_player_number = data_list[1]
@@ -54,7 +53,6 @@ class Process_the_display:  # 主要图像绘制
                         np.map_coordinates_y = int(data_list[3])
                         self.all_sprites.add(np)
                         self.all_net_sprites.add(np)
-                        print(data_list)
                     elif data_list[0] == '所有玩家':
                         lb = json.loads(data_list[1])
                         for net_p in lb:
@@ -62,17 +60,14 @@ class Process_the_display:  # 主要图像绘制
                             np.Room_player_number = str(net_p[0])
                             self.all_sprites.add(np)
                             self.all_net_sprites.add(np)
-                    elif data_list[0] == '玩家状态':
+                    elif data_list[0] == 'wjzt':    # 玩家状态
                         for p in self.all_net_sprites:
                             if p.Room_player_number == data_list[1]:
                                 p.map_coordinates_x = float(data_list[2])
                                 p.map_coordinates_y = float(data_list[3])
                                 p.face = data_list[4]
-                                print(data_list[5])
                                 p.Handheld.angle = float(data_list[5])
-                                # print(data_list)
                     elif data_list[0] == '发射子弹':
-                        print(data_list)
                         for net_pl in self.all_net_sprites:
                             if net_pl.Room_player_number == data_list[1]:
                                 net_pl.Handheld.use()
@@ -95,7 +90,8 @@ class Process_the_display:  # 主要图像绘制
             self.Game.Cn.ip = serverip
             self.Game.Cn.lj_server()
             self.Game.Connect_to_a_server = True    # True表示连接到服务器
-            start_new_thread(self.run_threaded_, ())
+            # start_new_thread(self.run_threaded_, ())
+            self.run_threaded_()
         except Exception as con_rest:  # 报错应该是服务端关闭了连接/服务器ip地址不存在
             print("服务端连接失败", con_rest)
 
@@ -182,9 +178,10 @@ class Process_the_display:  # 主要图像绘制
                 mx = player.face
                 jd = player.Handheld.angle
                 hp = player.hp
-                temp_data = f"玩家状态|{wj_bh}|{wz_x}|{wz_y}|{mx}|{jd}|{hp}|"
+                temp_data = f"wjzt|{wj_bh}|{wz_x}|{wz_y}|{mx}|{jd}|{hp}|"   # 玩家状态
                 try:
                     self.Game.Cn.send(temp_data)
+                    # print('出发数据》', temp_data)
                 except OSError:
                     print('应该是服务器断开连接')
                     self.Game.Connect_to_a_server = False
